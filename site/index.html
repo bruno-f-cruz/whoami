@@ -92,39 +92,23 @@
       <h2 id="steps-title">Open your pull request</h2>
       <ol class="steps">
         <li>
-          <h3>Open <code>whoami.yml</code> on GitHub</h3>
-          <p><a id="edit-link" class="button" href="#" target="_blank" rel="noopener">Open the editor</a></p>
-          <p>Sign in. If GitHub offers to <strong>fork the repository</strong>, accept. Keep this page open alongside.</p>
-        </li>
-        <li id="owner-step" hidden>
-          <h3>Add your organization</h3>
-          <pre id="owner-block" tabindex="0"></pre>
-          <button type="button" id="copy-owner" class="secondary">Copy owner</button>
-          <span class="copied" id="copy-owner-done" role="status"></span>
-          <p id="owner-where"></p>
+          <h3>Open your submission on GitHub</h3>
+          <p><a id="submit-link" class="button" href="#" target="_blank" rel="noopener">Open prefilled file on GitHub</a></p>
+          <p>Sign in if asked. If GitHub offers to <strong>fork the repository</strong>, accept. The file <code id="submission-path"></code> opens with your entry already filled in.</p>
         </li>
         <li>
-          <h3>Add your device</h3>
-          <pre id="yaml-block" tabindex="0"></pre>
-          <button type="button" id="copy-yaml" class="secondary">Copy device</button>
-          <span class="copied" id="copy-yaml-done" role="status"></span>
-          <p id="device-where"></p>
-          <p class="hint">Keep the indentation exactly as copied: 2 spaces before the key, 4 before each field. Use spaces, not tabs.</p>
-        </li>
-        <li>
-          <h3>Propose the change</h3>
-          <p>Click <strong>Commit changes…</strong>, then <strong>Propose changes</strong>.</p>
-        </li>
-        <li>
-          <h3>Create the pull request</h3>
-          <button type="button" id="copy-pr" class="secondary">Copy PR description</button>
-          <span class="copied" id="copy-pr-done" role="status"></span>
-          <ul>
-            <li>On the next page, replace the description with the copied text and click <strong>Create pull request</strong>.</li>
-            <li>An automated check validates your entry. If it is your first contribution, it starts once a maintainer approves it. Any problem is reported on the pull request.</li>
-          </ul>
+          <h3>Propose it</h3>
+          <p>Click <strong>Commit changes…</strong> → <strong>Propose changes</strong> → <strong>Create pull request</strong>. That's it.</p>
+          <p class="hint">An automated check validates your entry on the pull request. First-time contributors' checks start after a maintainer approves them. Once it's merged, your device is added to <code>whoami.yml</code> automatically.</p>
         </li>
       </ol>
+      <details class="fallback">
+        <summary>The file opened empty?</summary>
+        <p>Name the file <code id="fallback-path"></code>, paste this content, then continue with step 2.</p>
+        <pre id="submission-block" tabindex="0"></pre>
+        <button type="button" id="copy-submission" class="secondary">Copy file content</button>
+        <span class="copied" id="copy-submission-done" role="status"></span>
+      </details>
     </section>
 
     <footer>

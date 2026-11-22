@@ -1,14 +1,12 @@
 import {
   FALLBACK_RULES,
   NEW_OWNER,
-  insertionPoint,
-  ownerInsertionPoint,
   parseRegistry,
-  renderOwnerBlock,
-  renderPrBody,
-  renderYamlBlock,
+  renderSubmission,
   repoUrls,
   rulesFromSchema,
+  submissionPath,
+  submissionUrl,
   suggestWhoAmI,
   targetRepo,
   validateEntry,
@@ -29,7 +27,6 @@ function setLinks() {
   $("repo-link").textContent = repo;
   $("readme-link").href = `${urls.repo}#readme`;
   $("table-link").href = "../";
-  $("edit-link").href = urls.edit;
 }
 
 async function fetchText(url) {
@@ -110,43 +107,15 @@ function refresh() {
   }
   $("generate").disabled = errors.length > 0;
   // Any edit after generating invalidates the instructions below.
-  const stale =
-    $("yaml-block").textContent !== renderYamlBlock(entry) || $("owner-block").textContent !== renderOwnerBlock(entry);
-  if (!$("steps").hidden && stale) $("steps").hidden = true;
+  if (!$("steps").hidden && $("submission-block").textContent !== renderSubmission(entry)) $("steps").hidden = true;
   return errors;
 }
 
-function code(text) {
-  const el = document.createElement("code");
-  el.textContent = text;
-  return el;
-}
-
-function where(target, parts) {
-  target.replaceChildren(...parts.map((p) => (typeof p === "string" ? document.createTextNode(p) : p)));
-}
-
 function showSteps(entry) {
-  const ownerBlock = renderOwnerBlock(entry);
-  $("owner-step").hidden = !ownerBlock;
-  $("owner-block").textContent = ownerBlock;
-  const find = "Press Ctrl+F (⌘+F on macOS) in the editor to find the line ";
-  const known = Boolean(state.registry);
-  if (ownerBlock) {
-    const next = known ? ownerInsertionPoint(state.registry, entry.newOwnerKey.trim()) : null;
-    let parts;
-    if (!known) parts = ["Paste it in the ", code("owners:"), " section, keeping owners in alphabetical order by key."];
-    else if (next) parts = [find, code(`${next}: &${next}`), ", put the cursor at the start of that line, and paste. Owners stay in alphabetical order."];
-    else parts = ["Paste it at the end of the ", code("owners:"), " section, just above the empty line before ", code("devices:"), "."];
-    where($("owner-where"), parts);
-  }
-  const next = known ? insertionPoint(state.registry, entry.whoami) : null;
-  let parts;
-  if (!known) parts = ["Paste it so devices stay in ascending WhoAmI order: just above the first entry with a higher WhoAmI, or at the end of the file."];
-  else if (next) parts = [find, code(`${next}:`), ", put the cursor at the start of that line, and paste. Devices stay in ascending WhoAmI order."];
-  else parts = ["Press Ctrl+End (⌘+↓ on macOS) to jump to the end of the file. Make sure the cursor is at the start of an empty line, then paste."];
-  where($("device-where"), parts);
-  $("yaml-block").textContent = renderYamlBlock(entry);
+  $("submit-link").href = submissionUrl(repo, entry);
+  $("submission-path").textContent = submissionPath(entry);
+  $("fallback-path").textContent = submissionPath(entry);
+  $("submission-block").textContent = renderSubmission(entry);
   $("steps").hidden = false;
   $("steps").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -187,16 +156,9 @@ function init() {
     $(f).addEventListener("blur", touch);
   }
   $("device-form").addEventListener("submit", onSubmit);
-  $("copy-owner").addEventListener("click", () => copy($("owner-block").textContent, "owner-block", "copy-owner-done"));
-  $("copy-yaml").addEventListener("click", () => copy($("yaml-block").textContent, "yaml-block", "copy-yaml-done"));
-  $("copy-pr").addEventListener("click", () => {
-    const entry = readEntry();
-    const text = renderPrBody(entry, state.registry, entry.description);
-    navigator.clipboard.writeText(text).then(
-      () => ($("copy-pr-done").textContent = "Copied."),
-      () => ($("copy-pr-done").textContent = "Copy failed. Write the description by hand."),
-    );
-  });
+  $("copy-submission").addEventListener("click", () =>
+    copy($("submission-block").textContent, "submission-block", "copy-submission-done"),
+  );
   loadRegistry();
 }
 

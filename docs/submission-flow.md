@@ -1,6 +1,12 @@
 # Submission flow: GitHub editor prefill findings
 
-Status: researched 2026-11-22. **Manual verification pending.** It needs a GitHub account without write access to the target repository.
+Status: 2026-11-22. **Verified on the fork as the repository owner:** `/new/main?filename=submissions/1413.yml&value=…` opens the editor with the folder, file name and content exactly as sent, including `+`-encoded spaces, quotes, `:` and `#`. **Still unverified:** whether the prefill survives the fork prompt shown to an account without write access. If it doesn't, the form's fallback shows the file content to paste.
+
+## Current design
+
+The form opens GitHub's new-file page prefilled with `submissions/<whoami>.yml`, which holds the device, its owner (existing or new) and the description. The contributor clicks *Propose changes* → *Create pull request*. The PR check folds submissions into `whoami.yml` (`scripts/fold-submissions.mjs --out`) and validates the result. After merge, `fold-submissions.yml` runs `--write`, commits the updated `whoami.yml`, deletes the submission and dispatches the publish workflow.
+
+The sections below record the earlier research.
 
 ## What GitHub supports
 

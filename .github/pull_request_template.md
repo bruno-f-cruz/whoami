@@ -1,14 +1,2 @@
-## WhoAmI reservation
-
-- **WhoAmI:**
-- **Device name:**
-- **Device description:**
-- **Repository URL:**
-- **Project URL:**
-- **Submitted via form:** yes / no
-
-### Checklist
-
-- [ ] The new entry is appended at the end of `whoami.yml`
-- [ ] No existing entries were changed
-- [ ] The "Validate WhoAmI registry" check passes
+<!-- Submitted with the form? Nothing to add here: the details are in submissions/<whoami>.yml. -->
+<!-- Editing whoami.yml by hand? Describe the device and link its repository and project website. -->

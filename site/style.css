@@ -113,3 +113,5 @@ pre {
 }
 .copied { margin-left: .6rem; color: var(--ok); font-size: .9rem; }
 footer { margin-top: 3rem; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.fallback { margin-top: 1rem; }
+.fallback summary { cursor: pointer; color: var(--muted); }

@@ -4,11 +4,11 @@ This repository serves as a registry for unique identifiers for devices using th
 
 ## Reserving a `WhoAmI` identifier
 
-The easiest way is the [submission form](https://harp-tech.org/whoami/submit/). It checks your entry against the registry, generates the YAML, and guides you through opening the Pull Request from your own GitHub account.
+The easiest way is the [submission form](https://harp-tech.org/whoami/submit/). It checks your entry against the registry and opens GitHub with a prefilled `submissions/<whoami>.yml` file: accept the fork if offered, then click *Propose changes* and *Create pull request*. When the Pull Request is merged, a workflow moves the entry into `whoami.yml` and deletes the submission file.
 
 To do it by hand, submit a Pull Request with the desired identifier to the `whoami.yml` file in the root of this repository. Keep `devices` in ascending `WhoAmI` order. Make sure you include a description of the device in the PR along with a source and project website, if applicable.
 
-Every Pull Request that changes `whoami.yml` is validated automatically against `whoami.json` and the rules below. Run the same check locally with `uv run scripts/validate_whoami.py whoami.yml`.
+Every Pull Request that changes `whoami.yml` or adds a submission is validated automatically against `whoami.json` and the rules below. Run the same check locally with `uv run scripts/validate_whoami.py whoami.yml`.
 
 ## Declaring device ownership
 

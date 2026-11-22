@@ -5,11 +5,13 @@ on:
     paths:
       - 'whoami.yml'
       - 'whoami.json'
+      - 'submissions/**'
       - 'scripts/**'
       - 'tests/**'
       - 'site/**'
       - 'package.json'
       - '.github/workflows/validate-whoami.yml'
+      - '.github/workflows/fold-submissions.yml'
 
 permissions:
   contents: read
@@ -28,18 +30,21 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Validate whoami.yml
-        run: |
-          git show "origin/${{ github.base_ref }}:whoami.yml" > "$RUNNER_TEMP/base.yml"
-          uv run scripts/validate_whoami.py whoami.yml --base "$RUNNER_TEMP/base.yml" --schema whoami.json
-
-      - name: Validator tests
-        run: uv run --no-project --with pytest --with pyyaml==6.0.2 --with jsonschema==4.23.0 pytest tests -q
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Fold submissions into the registry
+        run: node scripts/fold-submissions.mjs --out "$RUNNER_TEMP/whoami.yml"
+
+      - name: Validate whoami.yml
+        run: |
+          git show "origin/${{ github.base_ref }}:whoami.yml" > "$RUNNER_TEMP/base.yml"
+          uv run scripts/validate_whoami.py "$RUNNER_TEMP/whoami.yml" --base "$RUNNER_TEMP/base.yml" --schema whoami.json
+
+      - name: Validator tests
+        run: uv run --no-project --with pytest --with pyyaml==6.0.2 --with jsonschema==4.23.0 pytest tests -q
 
       - name: Form logic tests
         run: npm test

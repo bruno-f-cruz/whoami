@@ -222,3 +222,87 @@ export function renderPrBody(entry, registry, description) {
     "",
   ].join("\n");
 }
+
+// ---- Submission files: submissions/<whoami>.yml, folded into whoami.yml after merge ----
+
+const SUBMISSION_KEYS = new Set(["whoami", "name", "owner", "newOwner", "repositoryUrl", "projectUrl", "appPackage", "description"]);
+
+export function submissionPath(entry) {
+  return `submissions/${trimmed(entry.whoami)}.yml`;
+}
+
+export function renderSubmission(entry) {
+  let out =
+    "# WhoAmI reservation. When this pull request is merged, the entry is moved\n" +
+    "# into whoami.yml automatically and this file is deleted.\n" +
+    `whoami: ${trimmed(entry.whoami)}\n` +
+    `name: ${scalar(trimmed(entry.name))}\n`;
+  if (entry.owner === NEW_OWNER) {
+    out += `newOwner:\n  key: ${scalar(trimmed(entry.newOwnerKey))}\n  authors: ${scalar(trimmed(entry.newOwnerAuthors))}\n`;
+  } else if (trimmed(entry.owner)) {
+    out += `owner: ${scalar(trimmed(entry.owner))}\n`;
+  }
+  for (const field of ["repositoryUrl", "projectUrl", "appPackage"]) {
+    const value = trimmed(entry[field]);
+    if (value) out += `${field}: ${scalar(value)}\n`;
+  }
+  const description = trimmed(entry.description);
+  if (description) out += `description: ${JSON.stringify(description)}\n`;
+  return out;
+}
+
+export function parseSubmission(text) {
+  const doc = load(text);
+  if (!doc || typeof doc !== "object" || Array.isArray(doc)) throw new Error("must be a YAML mapping");
+  const unknown = Object.keys(doc).filter((k) => !SUBMISSION_KEYS.has(k));
+  if (unknown.length) throw new Error(`unknown field(s): ${unknown.join(", ")}`);
+  for (const k of ["whoami", "name", "description"]) {
+    if (doc[k] === undefined || doc[k] === null || doc[k] === "") throw new Error(`missing required field: ${k}`);
+  }
+  if (doc.owner && doc.newOwner) throw new Error("set either owner or newOwner, not both");
+  const str = (v) => (v === undefined || v === null ? "" : String(v));
+  const fresh = doc.newOwner && typeof doc.newOwner === "object" ? doc.newOwner : null;
+  if (doc.newOwner && !fresh) throw new Error("newOwner must have key and authors");
+  return {
+    whoami: str(doc.whoami),
+    name: str(doc.name),
+    owner: fresh ? NEW_OWNER : str(doc.owner),
+    newOwnerKey: fresh ? str(fresh.key) : "",
+    newOwnerAuthors: fresh ? str(fresh.authors) : "",
+    repositoryUrl: str(doc.repositoryUrl),
+    projectUrl: str(doc.projectUrl),
+    appPackage: str(doc.appPackage),
+    description: str(doc.description),
+  };
+}
+
+/** GitHub "new file" page prefilled with the submission (the `value` parameter is undocumented). */
+export function submissionUrl(repo, entry) {
+  const params = new URLSearchParams({ filename: submissionPath(entry), value: renderSubmission(entry) });
+  return `https://github.com/${repo}/new/main?${params}`;
+}
+
+/** Apply submission files to whoami.yml text. Returns the new text and per-file errors. */
+export function foldSubmissions(registryText, rules, submissions) {
+  let text = registryText;
+  let registry = parseRegistry(text);
+  const errors = [];
+  for (const { path, text: subText } of submissions) {
+    let entry;
+    try {
+      entry = parseSubmission(subText);
+    } catch (e) {
+      errors.push({ path, message: `Could not read submission: ${e.message.split("\n")[0]}` });
+      continue;
+    }
+    const problems = validateEntry(entry, rules, registry).map((e) => e.message);
+    if (path !== submissionPath(entry)) problems.push(`File must be named ${submissionPath(entry)} to match its WhoAmI.`);
+    if (problems.length) {
+      errors.push({ path, message: problems.join(" ") });
+      continue;
+    }
+    text = applyEntry(text, entry, registry);
+    registry = parseRegistry(text);
+  }
+  return { text, errors };
+}
