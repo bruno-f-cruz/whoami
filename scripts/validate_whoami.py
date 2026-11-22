@@ -65,7 +65,7 @@ def validate(registry: dict, schema: dict) -> list[str]:
             errors.append(f"WhoAmI {key}: must be an integer from 100 to 9999 (pattern {key_re.pattern})")
 
     instance = {"devices": {str(k): v for k, v in registry.items()}}
-    validator = jsonschema.Draft7Validator(schema)
+    validator = jsonschema.validators.validator_for(schema)(schema)
     for err in validator.iter_errors(instance):
         path = list(err.absolute_path)
         if len(path) < 2:
@@ -87,6 +87,35 @@ def validate(registry: dict, schema: dict) -> list[str]:
             errors.append(f"WhoAmI {key}: name '{name}' duplicates '{other_name}' (WhoAmI {other_key})")
         else:
             names[folded] = (key, name)
+    return errors
+
+
+def structure_errors(text: str) -> list[str]:
+    """Rules about how whoami.yml is written, which the parsed data cannot show:
+    devices are listed in ascending WhoAmI order, and authors come from an owner via a merge key."""
+    root = yaml.compose(text, Loader=_StrictLoader)
+    devices = next(
+        (value for key, value in root.value if key.value == "devices"),
+        None,
+    ) if isinstance(root, yaml.MappingNode) else None
+    if not isinstance(devices, yaml.MappingNode):
+        return []
+    errors = []
+    previous = None
+    for key_node, value_node in devices.value:
+        try:
+            key = int(key_node.value)
+        except ValueError:
+            continue  # reported by the schema check
+        if previous is not None and key <= previous:
+            errors.append(f"WhoAmI {key}: devices must be listed in ascending WhoAmI order (found after {previous})")
+        previous = max(key, previous) if previous is not None else key
+        if isinstance(value_node, yaml.MappingNode) and any(
+            k.value == "authors" and k.tag != MERGE_TAG for k, _ in value_node.value
+        ):
+            errors.append(
+                f"WhoAmI {key}: set authors through an owner (`<<: *owner`), not directly on the device"
+            )
     return errors
 
 
@@ -138,7 +167,7 @@ def main(argv=None) -> int:
         _emit(display, str(e))
         return 1
 
-    errors = validate(head, schema)
+    errors = validate(head, schema) + structure_errors(text)
     if args.base:
         base = load_registry(Path(args.base).read_text(encoding="utf-8"))
         errors += diff_existing(base, head)

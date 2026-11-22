@@ -14,8 +14,13 @@ from validate_whoami import (  # noqa: E402
     DuplicateKeyError,
     diff_existing,
     load_registry,
+    structure_errors,
     validate,
 )
+
+
+def fixture(name):
+    return (FIXTURES / name).read_text(encoding="utf-8")
 
 
 @pytest.fixture(scope="module")
@@ -44,6 +49,7 @@ def with_entry(registry, key, entry):
 
 def test_current_registry_is_valid(current, schema):
     assert validate(current, schema) == []
+    assert structure_errors((ROOT / "whoami.yml").read_text(encoding="utf-8")) == []
 
 
 def test_merge_key_resolves(current):
@@ -52,23 +58,22 @@ def test_merge_key_resolves(current):
 
 def test_duplicate_key_fails():
     with pytest.raises(DuplicateKeyError):
-        load_registry((FIXTURES / "dup_key.yml").read_text(encoding="utf-8"))
+        load_registry(fixture("dup_key.yml"))
     result = run_cli(FIXTURES / "dup_key.yml")
     assert result.returncode == 1
     assert "1410" in result.stdout
 
 
-@pytest.mark.parametrize("fixture", ["bad_indent.yml", "tab_indent.yml"])
-def test_bad_indentation_reports_line(fixture):
-    result = run_cli(FIXTURES / fixture)
+@pytest.mark.parametrize("name", ["bad_indent.yml", "tab_indent.yml"])
+def test_bad_indentation_reports_line(name):
+    result = run_cli(FIXTURES / name)
     assert result.returncode == 1
     assert "line=" in result.stdout
 
 
 @pytest.mark.parametrize("key", [99, 10000, "0123"])
 def test_invalid_whoami_range(current, schema, key):
-    errors = validate(with_entry(current, key, {"name": "Fresh"}), schema)
-    assert errors, key
+    assert validate(with_entry(current, key, {"name": "Fresh"}), schema), key
 
 
 def test_whoami_100_is_valid(current, schema):
@@ -77,50 +82,62 @@ def test_whoami_100_is_valid(current, schema):
 
 @pytest.mark.parametrize("name", ["9Device", "my-device"])
 def test_invalid_name(current, schema, name):
-    assert validate(with_entry(current, 1500, {"name": name}), schema)
+    assert validate(with_entry(current, 2200, {"name": name}), schema)
 
 
 def test_duplicate_name_case_insensitive(current, schema):
-    errors = validate(with_entry(current, 1500, {"name": "hobgoblin"}), schema)
+    errors = validate(with_entry(current, 2200, {"name": "hobgoblin"}), schema)
     assert any("Hobgoblin" in e for e in errors)
 
 
 def test_unknown_field_fails(current, schema):
-    assert validate(with_entry(current, 1500, {"name": "Fresh", "email": "a@b.c"}), schema)
+    assert validate(with_entry(current, 2200, {"name": "Fresh", "copyright": "x"}), schema)
 
 
 def test_http_url_fails(current, schema):
-    assert validate(with_entry(current, 1500, {"name": "Fresh", "repositoryUrl": "http://x"}), schema)
+    assert validate(with_entry(current, 2200, {"name": "Fresh", "repositoryUrl": "http://x"}), schema)
 
 
 def test_missing_name_fails(current, schema):
-    assert validate(with_entry(current, 1500, {"authors": "Someone"}), schema)
+    assert validate(with_entry(current, 2200, {"projectUrl": "https://x.org"}), schema)
+
+
+def test_app_package_validated(current, schema):
+    ok = {"name": "Fresh", "app": {"type": "dotnetTool", "package": "Harp.Fresh.App"}}
+    bad = {"name": "Fresh", "app": {"type": "dotnetTool", "package": "bad package"}}
+    assert validate(with_entry(current, 2200, ok), schema) == []
+    assert validate(with_entry(current, 2200, bad), schema)
+
+
+def test_unsorted_key_fails():
+    errors = structure_errors(fixture("unsorted.yml"))
+    assert len(errors) == 1 and errors[0].startswith("WhoAmI 1500:")
+
+
+def test_direct_authors_fails():
+    errors = structure_errors(fixture("direct_authors.yml"))
+    assert len(errors) == 1 and errors[0].startswith("WhoAmI 2200:")
 
 
 def test_modified_existing_entry_fails():
-    base = load_registry((FIXTURES / "base.yml").read_text(encoding="utf-8"))
-    head = load_registry((FIXTURES / "modified_existing.yml").read_text(encoding="utf-8"))
-    errors = diff_existing(base, head)
-    assert len(errors) == 1 and "1410" in errors[0]
+    errors = diff_existing(load_registry(fixture("base.yml")), load_registry(fixture("modified_existing.yml")))
+    assert len(errors) == 1 and "2110" in errors[0]
 
 
 def test_removed_existing_entry_fails(current):
     head = dict(current)
-    del head[1410]
+    del head[2110]
     errors = diff_existing(current, head)
-    assert len(errors) == 1 and "1410" in errors[0]
+    assert len(errors) == 1 and "2110" in errors[0]
 
 
 def test_appended_entry_passes_cli():
     result = run_cli(FIXTURES / "appended_ok.yml", "--base", FIXTURES / "base.yml")
     assert result.returncode == 0, result.stdout
-    assert diff_existing(
-        load_registry((FIXTURES / "base.yml").read_text(encoding="utf-8")),
-        load_registry((FIXTURES / "appended_ok.yml").read_text(encoding="utf-8")),
-    ) == []
 
 
-def test_modified_existing_fails_cli():
-    result = run_cli(FIXTURES / "modified_existing.yml", "--base", FIXTURES / "base.yml")
+@pytest.mark.parametrize("name", ["modified_existing.yml", "unsorted.yml", "direct_authors.yml"])
+def test_rule_violations_fail_cli(name):
+    result = run_cli(FIXTURES / name, "--base", FIXTURES / "base.yml")
     assert result.returncode == 1
-    assert "1410" in result.stdout
+    assert "::error" in result.stdout
