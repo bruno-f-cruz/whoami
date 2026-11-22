@@ -20,6 +20,16 @@
           "whoami.yml",
           "whoami.json"
         ]
+      },
+      {
+        "src": "../site",
+        "files": [
+          "**"
+        ],
+        "exclude": [
+          "**/*.test.mjs"
+        ],
+        "dest": "submit"
       }
     ],
     "globalMetadata": {
