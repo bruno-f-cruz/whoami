@@ -35,3 +35,11 @@ jobs:
 
       - name: Validator tests
         run: uv run --no-project --with pytest --with pyyaml==6.0.2 --with jsonschema==4.23.0 pytest tests -q
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Form logic tests
+        run: npm test
