@@ -110,7 +110,9 @@ function refresh() {
   }
   $("generate").disabled = errors.length > 0;
   // Any edit after generating invalidates the instructions below.
-  if (!$("steps").hidden && $("yaml-block").textContent !== renderYamlBlock(entry)) $("steps").hidden = true;
+  const stale =
+    $("yaml-block").textContent !== renderYamlBlock(entry) || $("owner-block").textContent !== renderOwnerBlock(entry);
+  if (!$("steps").hidden && stale) $("steps").hidden = true;
   return errors;
 }
 

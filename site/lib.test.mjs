@@ -138,7 +138,7 @@ test("renderOwnerBlock only for new owners, with safe quoting", () => {
 });
 
 test("renders special characters safely", () => {
-  for (const v of ["Smith: Lab #2", "yes", "Off", "2024", "null", "Ünïcødé Lab", "O'Brien \"Lab\"", "a: b"]) {
+  for (const v of ["Smith: Lab #2", "yes", "Off", "2024", "null", "Ünïcødé Lab", "O'Brien \"Lab\"", "a: b", "0x1F", "0b101", "2024-01-01 10:00", "1_000"]) {
     const block = renderOwnerBlock(entry({ owner: NEW_OWNER, newOwnerKey: "x", newOwnerAuthors: v }));
     assert.equal(load("owners:\n" + block).owners.x.authors, v, v);
   }
@@ -168,6 +168,8 @@ test("applyEntry output passes the CI validator", () => {
   const dir = mkdtempSync(join(tmpdir(), "whoami-"));
   const cases = [
     entry({ whoami: "1413", owner: NEW_OWNER, newOwnerKey: "zeta-lab", newOwnerAuthors: "Off" }),
+    entry({ whoami: "1414", owner: NEW_OWNER, newOwnerKey: "hex-lab", newOwnerAuthors: "0x1F" }),
+    entry({ whoami: "1415", owner: NEW_OWNER, newOwnerKey: "date-lab", newOwnerAuthors: "2024-01-01 10:00" }),
     entry({ whoami: "2200", owner: "aind", appPackage: "Harp.Fresh.App", projectUrl: "https://x.org" }),
   ];
   for (const [i, e] of cases.entries()) {

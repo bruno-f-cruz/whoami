@@ -142,7 +142,8 @@ export function ownerInsertionPoint(registry, key) {
 // Words YAML 1.1 (PyYAML) or 1.2 would not read back as the same string.
 const RESERVED = /^(y|n|yes|no|on|off|true|false|null|~)$/i;
 const PLAIN = /^[A-Za-z0-9][A-Za-z0-9 _./:-]*$/;
-const NUMBERISH = /^[-+]?[0-9][0-9_.:eE+-]*$/;
+// YAML 1.1 reads many digit-led scalars (0x1F, 1_000, dates, 1:20) as non-strings.
+const NUMBERISH = /^[-+0-9]/;
 
 function scalar(value) {
   const plain =
