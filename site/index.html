@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reserve a Harp WhoAmI</title>
+  <meta name="description" content="Request a unique WhoAmI identifier for a Harp device.">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Harp device registry</p>
+      <h1>Reserve a WhoAmI</h1>
+      <p class="lede">
+        Every Harp device reports a <code>WhoAmI</code> identifier. Fill in this form to generate your
+        registry entry, then open a pull request from your own GitHub account.
+      </p>
+      <p id="registry-status" class="status" role="status" aria-live="polite">Loading registry…</p>
+    </header>
+
+    <form id="device-form" novalidate>
+      <fieldset>
+        <legend>Device</legend>
+        <div class="field">
+          <label for="whoami">WhoAmI <span class="req" aria-hidden="true">*</span></label>
+          <input id="whoami" name="whoami" inputmode="numeric" autocomplete="off" required aria-describedby="whoami-hint whoami-error">
+          <p id="whoami-hint" class="hint">Whole number from 100 to 9999. The next free number is suggested. <a id="table-link" href="#" target="_blank" rel="noopener">See the registry table</a>.</p>
+          <p id="whoami-error" class="error" aria-live="polite"></p>
+        </div>
+        <div class="field">
+          <label for="name">Device name <span class="req" aria-hidden="true">*</span></label>
+          <input id="name" name="name" autocomplete="off" required placeholder="MyDevice" aria-describedby="name-hint name-error">
+          <p id="name-hint" class="hint">Starts with a letter; letters, digits and underscores only.</p>
+          <p id="name-error" class="error" aria-live="polite"></p>
+        </div>
+        <div class="field">
+          <label for="description">Description <span class="req" aria-hidden="true">*</span></label>
+          <textarea id="description" name="description" rows="3" required aria-describedby="description-hint description-error"></textarea>
+          <p id="description-hint" class="hint">What the device does. Goes in the pull request, not in the registry.</p>
+          <p id="description-error" class="error" aria-live="polite"></p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ownership and links <span class="optional">(optional)</span></legend>
+        <div class="grid">
+          <div class="field">
+            <label for="authors">Authors</label>
+            <input id="authors" name="authors" autocomplete="organization" aria-describedby="authors-error">
+            <p id="authors-error" class="error" aria-live="polite"></p>
+          </div>
+          <div class="field">
+            <label for="copyright">Copyright</label>
+            <input id="copyright" name="copyright" aria-describedby="copyright-error">
+            <p id="copyright-error" class="error" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="repositoryUrl">Repository URL</label>
+          <input id="repositoryUrl" name="repositoryUrl" type="url" placeholder="https://github.com/org/device.repo" aria-describedby="repositoryUrl-error">
+          <p id="repositoryUrl-error" class="error" aria-live="polite"></p>
+        </div>
+        <div class="field">
+          <label for="projectUrl">Project URL</label>
+          <input id="projectUrl" name="projectUrl" type="url" placeholder="https://…" aria-describedby="projectUrl-error">
+          <p id="projectUrl-error" class="error" aria-live="polite"></p>
+        </div>
+      </fieldset>
+
+      <button id="generate" type="submit" disabled>Generate registry entry</button>
+    </form>
+
+    <section id="steps" hidden aria-labelledby="steps-title">
+      <h2 id="steps-title">Open your pull request</h2>
+      <ol class="steps">
+        <li>
+          <h3>Copy your entry</h3>
+          <pre id="yaml-block" tabindex="0"></pre>
+          <button type="button" id="copy-yaml" class="secondary">Copy YAML</button>
+          <span class="copied" id="copy-yaml-done" role="status"></span>
+        </li>
+        <li>
+          <h3>Add it to <code>whoami.yml</code></h3>
+          <p><a id="edit-link" class="button" href="#" target="_blank" rel="noopener">Open whoami.yml on GitHub</a></p>
+          <ul>
+            <li>Sign in. If GitHub offers to <strong>fork the repository</strong>, accept.</li>
+            <li>Click inside the editor and press <kbd>Ctrl</kbd>+<kbd>End</kbd> (<kbd>⌘</kbd>+<kbd>↓</kbd> on macOS) to jump to the very end of the file.</li>
+            <li>Paste. Your entry must be the <strong>last</strong> thing in the file and keep its indentation (2 spaces before the number, 4 before each field).</li>
+            <li>Click <strong>Commit changes…</strong>, then <strong>Propose changes</strong>.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Create the pull request</h3>
+          <button type="button" id="copy-pr" class="secondary">Copy PR description</button>
+          <span class="copied" id="copy-pr-done" role="status"></span>
+          <ul>
+            <li>On the next page, replace the description with the copied text and click <strong>Create pull request</strong>.</li>
+            <li>An automated check validates your entry. If it is your first contribution, it starts once a maintainer approves it. Any problem is reported on the pull request.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <footer>
+      <p>Target repository: <a id="repo-link" href="#"></a>. Prefer doing it by hand? See the <a id="readme-link" href="#">README</a>.</p>
+    </footer>
+  </main>
+</body>
+</html>
