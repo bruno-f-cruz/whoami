@@ -45,16 +45,26 @@
 
       <fieldset>
         <legend>Ownership and links <span class="optional">(optional)</span></legend>
-        <div class="grid">
+        <div class="field">
+          <label for="owner">Owner</label>
+          <select id="owner" name="owner" aria-describedby="owner-hint owner-error">
+            <option value="">No owner</option>
+            <option value="__new__">My organization is not listed…</option>
+          </select>
+          <p id="owner-hint" class="hint">Shown as the owner in the published table.</p>
+          <p id="owner-error" class="error" aria-live="polite"></p>
+        </div>
+        <div id="new-owner" class="grid" hidden>
           <div class="field">
-            <label for="authors">Authors</label>
-            <input id="authors" name="authors" autocomplete="organization" aria-describedby="authors-error">
-            <p id="authors-error" class="error" aria-live="polite"></p>
+            <label for="newOwnerAuthors">Organization name</label>
+            <input id="newOwnerAuthors" name="newOwnerAuthors" autocomplete="organization" placeholder="My Lab" aria-describedby="newOwnerAuthors-error">
+            <p id="newOwnerAuthors-error" class="error" aria-live="polite"></p>
           </div>
           <div class="field">
-            <label for="copyright">Copyright</label>
-            <input id="copyright" name="copyright" aria-describedby="copyright-error">
-            <p id="copyright-error" class="error" aria-live="polite"></p>
+            <label for="newOwnerKey">Owner key</label>
+            <input id="newOwnerKey" name="newOwnerKey" autocomplete="off" placeholder="my-lab" aria-describedby="newOwnerKey-hint newOwnerKey-error">
+            <p id="newOwnerKey-hint" class="hint">Lowercase letters, digits and hyphens.</p>
+            <p id="newOwnerKey-error" class="error" aria-live="polite"></p>
           </div>
         </div>
         <div class="field">
@@ -67,6 +77,12 @@
           <input id="projectUrl" name="projectUrl" type="url" placeholder="https://…" aria-describedby="projectUrl-error">
           <p id="projectUrl-error" class="error" aria-live="polite"></p>
         </div>
+        <div class="field">
+          <label for="appPackage">App package</label>
+          <input id="appPackage" name="appPackage" autocomplete="off" placeholder="Harp.MyDevice.App" aria-describedby="appPackage-hint appPackage-error">
+          <p id="appPackage-hint" class="hint">NuGet package ID of the device's .NET tool app, if it has one.</p>
+          <p id="appPackage-error" class="error" aria-live="polite"></p>
+        </div>
       </fieldset>
 
       <button id="generate" type="submit" disabled>Generate registry entry</button>
@@ -76,20 +92,28 @@
       <h2 id="steps-title">Open your pull request</h2>
       <ol class="steps">
         <li>
-          <h3>Copy your entry</h3>
-          <pre id="yaml-block" tabindex="0"></pre>
-          <button type="button" id="copy-yaml" class="secondary">Copy YAML</button>
-          <span class="copied" id="copy-yaml-done" role="status"></span>
+          <h3>Open <code>whoami.yml</code> on GitHub</h3>
+          <p><a id="edit-link" class="button" href="#" target="_blank" rel="noopener">Open the editor</a></p>
+          <p>Sign in. If GitHub offers to <strong>fork the repository</strong>, accept. Keep this page open alongside.</p>
+        </li>
+        <li id="owner-step" hidden>
+          <h3>Add your organization</h3>
+          <pre id="owner-block" tabindex="0"></pre>
+          <button type="button" id="copy-owner" class="secondary">Copy owner</button>
+          <span class="copied" id="copy-owner-done" role="status"></span>
+          <p id="owner-where"></p>
         </li>
         <li>
-          <h3>Add it to <code>whoami.yml</code></h3>
-          <p><a id="edit-link" class="button" href="#" target="_blank" rel="noopener">Open whoami.yml on GitHub</a></p>
-          <ul>
-            <li>Sign in. If GitHub offers to <strong>fork the repository</strong>, accept.</li>
-            <li>Click inside the editor and press <kbd>Ctrl</kbd>+<kbd>End</kbd> (<kbd>⌘</kbd>+<kbd>↓</kbd> on macOS) to jump to the very end of the file.</li>
-            <li>Paste. Your entry must be the <strong>last</strong> thing in the file and keep its indentation (2 spaces before the number, 4 before each field).</li>
-            <li>Click <strong>Commit changes…</strong>, then <strong>Propose changes</strong>.</li>
-          </ul>
+          <h3>Add your device</h3>
+          <pre id="yaml-block" tabindex="0"></pre>
+          <button type="button" id="copy-yaml" class="secondary">Copy device</button>
+          <span class="copied" id="copy-yaml-done" role="status"></span>
+          <p id="device-where"></p>
+          <p class="hint">Keep the indentation exactly as copied: 2 spaces before the key, 4 before each field. Use spaces, not tabs.</p>
+        </li>
+        <li>
+          <h3>Propose the change</h3>
+          <p>Click <strong>Commit changes…</strong>, then <strong>Propose changes</strong>.</p>
         </li>
         <li>
           <h3>Create the pull request</h3>
